@@ -5,17 +5,25 @@
  * Add your custom admin JavaScript functionality here.
  *
  * Features:
- * - Alt+D keystroke listener (customizable via window.CoffeeAdmin.onAltDPressed)
+ * - Configurable keystroke listener
  *
  * Usage:
- * You can override the Alt+D handler:
- *   window.CoffeeAdmin.onAltDPressed = function(event) {
+ * You can override the keystroke handler:
+ *   window.CoffeeAdmin.onKeystrokeTriggered = function(event) {
  *     // Your custom logic here
  *   };
  */
 
 (function() {
     'use strict';
+
+    // Keystroke configuration
+    var keystrokeConfig = {
+        altKey: true,
+        ctrlKey: false,
+        shiftKey: false,
+        key: 'd'  // The key to listen for (case-insensitive)
+    };
 
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
@@ -45,20 +53,25 @@
      * @param {KeyboardEvent} event - The keyboard event
      */
     function handleKeystroke(event) {
-        // Check for Alt+D combination
-        if (event.altKey && (event.key === 'd' || event.key === 'D')) {
+        // Check if the configured keystroke combination matches
+        var keyMatches = event.key.toLowerCase() === keystrokeConfig.key.toLowerCase();
+        var altMatches = event.altKey === keystrokeConfig.altKey;
+        var ctrlMatches = event.ctrlKey === keystrokeConfig.ctrlKey;
+        var shiftMatches = event.shiftKey === keystrokeConfig.shiftKey;
+
+        if (keyMatches && altMatches && ctrlMatches && shiftMatches) {
             event.preventDefault(); // Prevent default browser behavior
-            onAltDPressed(event);
+            onKeystrokeTriggered(event);
         }
     }
 
     /**
-     * Handler for Alt+D keystroke
+     * Handler for configured keystroke
      * @param {KeyboardEvent} event - The keyboard event
      */
-    function onAltDPressed(event) {
-        console.log('Alt+D pressed in Coffee Admin');
-        // Add your custom Alt+D functionality here
+    function onKeystrokeTriggered(event) {
+        console.log('Configured keystroke triggered in Coffee Admin');
+        // Add your custom keystroke functionality here
         // Example: Toggle a panel, show a dialog, etc.
     }
 
@@ -67,7 +80,7 @@
         init: initCoffeeAdmin,
         version: '0.1.0',
         // Expose keystroke handler for customization
-        onAltDPressed: onAltDPressed
+        onKeystrokeTriggered: onKeystrokeTriggered
     };
 
 })();
