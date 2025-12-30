@@ -67,8 +67,8 @@ The package includes a Spotlight/Alfred-style command launcher that can be trigg
 - **Keyboard Shortcuts**:
   - `Alt+D` - Toggle launcher
   - `ESC` - Close launcher
-  - `↑`/`↓` - Navigate results (UI ready, implementation pending)
-  - `Enter` - Select result (UI ready, implementation pending)
+  - `↑`/`↓` - Navigate through results
+  - `Enter` - Select highlighted result and navigate
 
 The launcher automatically searches all registered admin models and provides quick access to:
 - Model list views (e.g., "Users", "Groups")

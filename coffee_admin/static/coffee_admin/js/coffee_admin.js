@@ -9,7 +9,15 @@
  * - Spotlight/Alfred-style launcher UI
  * - Real-time search of Django admin URLs
  * - Debounced API requests (300ms delay)
+ * - Keyboard navigation (Arrow Up/Down, Enter to select)
  * - Automatic navigation to selected results
+ *
+ * Keyboard Shortcuts:
+ * - Alt+D: Toggle launcher
+ * - ESC: Close launcher
+ * - Arrow Up: Navigate to previous result
+ * - Arrow Down: Navigate to next result
+ * - Enter: Select highlighted result
  *
  * Usage:
  * You can override the keystroke handler:
@@ -35,6 +43,7 @@
     var isLauncherVisible = false;
     var searchDebounceTimer = null;
     var currentSearchRequest = null;
+    var selectedResultIndex = -1;  // Track selected result for keyboard navigation
 
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
@@ -105,10 +114,36 @@
             }
         });
 
-        // Close on ESC key
+        // Handle keyboard navigation
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && isLauncherVisible) {
+            if (!isLauncherVisible) return;
+
+            // ESC to close
+            if (e.key === 'Escape') {
                 hideLauncher();
+                return;
+            }
+
+            // Arrow keys and Enter only work when launcher is visible
+            var resultsContainer = launcherElement.querySelector('.coffee-launcher-results');
+            var items = resultsContainer.querySelectorAll('.coffee-launcher-result-item');
+
+            if (items.length === 0) return;
+
+            // Arrow Down - navigate to next result
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                navigateResults(1, items);
+            }
+            // Arrow Up - navigate to previous result
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                navigateResults(-1, items);
+            }
+            // Enter - select current result
+            else if (e.key === 'Enter') {
+                e.preventDefault();
+                selectCurrentResult(items);
             }
         });
 
@@ -188,6 +223,9 @@
 
         // Clear input
         launcherInput.value = '';
+
+        // Reset selection
+        selectedResultIndex = -1;
 
         // Reset results
         var resultsContainer = launcherElement.querySelector('.coffee-launcher-results');
@@ -295,6 +333,9 @@
     function displaySearchResults(results) {
         var resultsContainer = launcherElement.querySelector('.coffee-launcher-results');
 
+        // Reset selection when displaying new results
+        selectedResultIndex = -1;
+
         if (!results || results.length === 0) {
             resultsContainer.innerHTML = `
                 <div class="coffee-launcher-empty">
@@ -337,6 +378,54 @@
             window.location.href = url;
         }
         hideLauncher();
+    }
+
+    /**
+     * Navigate through results with arrow keys
+     * @param {number} direction - 1 for down, -1 for up
+     * @param {NodeList} items - List of result items
+     */
+    function navigateResults(direction, items) {
+        // Remove current selection
+        if (selectedResultIndex >= 0 && selectedResultIndex < items.length) {
+            items[selectedResultIndex].classList.remove('selected');
+        }
+
+        // Calculate new index
+        if (selectedResultIndex === -1) {
+            // No selection yet, select first or last depending on direction
+            selectedResultIndex = direction === 1 ? 0 : items.length - 1;
+        } else {
+            selectedResultIndex = selectedResultIndex + direction;
+        }
+
+        // Wrap around
+        if (selectedResultIndex >= items.length) {
+            selectedResultIndex = 0;
+        } else if (selectedResultIndex < 0) {
+            selectedResultIndex = items.length - 1;
+        }
+
+        // Add selection to new item
+        items[selectedResultIndex].classList.add('selected');
+
+        // Scroll into view if needed
+        items[selectedResultIndex].scrollIntoView({
+            block: 'nearest',
+            behavior: 'smooth'
+        });
+    }
+
+    /**
+     * Select the currently highlighted result
+     * @param {NodeList} items - List of result items
+     */
+    function selectCurrentResult(items) {
+        if (selectedResultIndex >= 0 && selectedResultIndex < items.length) {
+            var selectedItem = items[selectedResultIndex];
+            var url = selectedItem.dataset.url;
+            handleResultClick(url);
+        }
     }
 
     // Expose public API if needed
