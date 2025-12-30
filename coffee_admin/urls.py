@@ -1,9 +1,11 @@
 from django.urls import path
-from . import admin
+from . import views
 
 app_name = 'coffee_admin'
 
 urlpatterns = [
+    # Search endpoint for launcher
+    path('search/', views.search_admin_urls, name='search'),
     # Add custom admin URLs here
-    # path('dashboard/', admin.custom_admin_view, name='dashboard'),
+    # path('dashboard/', views.admin_dashboard, name='dashboard'),
 ]

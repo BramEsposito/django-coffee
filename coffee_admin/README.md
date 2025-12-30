@@ -6,6 +6,8 @@ A Django package designed to be loaded only in the Admin interface, without any 
 
 - Admin-only interface
 - No database models required
+- Spotlight/Alfred-style command launcher with keyboard shortcuts
+- JSON API for searching admin URLs
 - Custom admin views and functionality
 - Automatic JavaScript loading on every admin page
 - Easy integration with existing Django projects
@@ -57,13 +59,77 @@ The package includes example custom admin views that don't require models:
 - `custom_admin_view`: A basic admin view example
 - `admin_dashboard`: A staff-only dashboard view
 
+### Launcher UI
+
+The package includes a Spotlight/Alfred-style command launcher that can be triggered with a keyboard shortcut (default: Alt+D):
+
+- **Search Admin Pages**: Type to search through all registered Django admin models and actions
+- **Keyboard Shortcuts**:
+  - `Alt+D` - Toggle launcher
+  - `ESC` - Close launcher
+  - `↑`/`↓` - Navigate results (UI ready, implementation pending)
+  - `Enter` - Select result (UI ready, implementation pending)
+
+The launcher automatically searches all registered admin models and provides quick access to:
+- Model list views (e.g., "Users", "Groups")
+- Add new item views (e.g., "Add User")
+- Admin home page
+
+### Search API
+
+The package provides a JSON API endpoint for searching admin URLs:
+
+**Endpoint:** `/admin/coffee/search/`
+
+**Query Parameters:**
+- `q` - Search query (optional)
+
+**Example Request:**
+```bash
+curl "http://localhost:8000/admin/coffee/search/?q=user"
+```
+
+**Example Response:**
+```json
+{
+  "results": [
+    {
+      "title": "Users",
+      "subtitle": "View all users",
+      "url": "/admin/auth/user/",
+      "icon": "👤",
+      "category": "models",
+      "app_label": "auth"
+    },
+    {
+      "title": "Add User",
+      "subtitle": "Create a new user",
+      "url": "/admin/auth/user/add/",
+      "icon": "➕",
+      "category": "actions",
+      "app_label": "auth"
+    }
+  ],
+  "query": "user",
+  "count": 2
+}
+```
+
 ### JavaScript Integration
 
 The package automatically loads a JavaScript file (`coffee_admin.js`) on every admin page. This file includes:
 
-- A stub implementation ready for customization
+- Spotlight/Alfred-style launcher UI
+- Configurable keyboard shortcuts
 - Console logging to verify it's loaded
 - A global `CoffeeAdmin` object for extending functionality
+
+**Public API:**
+```javascript
+window.CoffeeAdmin.showLauncher()    // Show the launcher
+window.CoffeeAdmin.hideLauncher()    // Hide the launcher
+window.CoffeeAdmin.toggleLauncher()  // Toggle launcher visibility
+```
 
 The JavaScript file is located at: `static/coffee_admin/js/coffee_admin.js`
 
@@ -85,15 +151,17 @@ coffee_admin/
 ├── __init__.py
 ├── admin.py           # Admin configuration and custom admin site
 ├── apps.py            # App configuration
-├── urls.py            # URL routing for custom admin views
-├── views.py           # Custom admin views
+├── urls.py            # URL routing (includes /search/ endpoint)
+├── views.py           # Custom admin views and search API
 ├── static/
 │   └── coffee_admin/
+│       ├── css/
+│       │   └── launcher.css     # Launcher UI styles
 │       └── js/
-│           └── coffee_admin.js  # Auto-loaded on every admin page
+│           └── coffee_admin.js  # Launcher and keyboard shortcuts
 ├── templates/
 │   ├── admin/
-│   │   └── base_site.html       # Template override for JS loading
+│   │   └── base_site.html       # Template override for JS/CSS loading
 │   └── coffee_admin/
 │       └── dashboard.html
 └── README.md
