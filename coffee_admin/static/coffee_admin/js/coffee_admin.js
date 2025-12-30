@@ -5,8 +5,11 @@
  * Add your custom admin JavaScript functionality here.
  *
  * Features:
- * - Configurable keystroke listener
+ * - Configurable keystroke listener (default: Alt+D)
  * - Spotlight/Alfred-style launcher UI
+ * - Real-time search of Django admin URLs
+ * - Debounced API requests (300ms delay)
+ * - Automatic navigation to selected results
  *
  * Usage:
  * You can override the keystroke handler:
@@ -30,6 +33,8 @@
     var launcherElement = null;
     var launcherInput = null;
     var isLauncherVisible = false;
+    var searchDebounceTimer = null;
+    var currentSearchRequest = null;
 
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
@@ -194,12 +199,24 @@
     }
 
     /**
-     * Handle launcher input changes
+     * Handle launcher input changes with debouncing
      * @param {string} value - The input value
      */
     function handleLauncherInput(value) {
         var resultsContainer = launcherElement.querySelector('.coffee-launcher-results');
 
+        // Cancel previous debounce timer
+        if (searchDebounceTimer) {
+            clearTimeout(searchDebounceTimer);
+        }
+
+        // Cancel previous search request if still pending
+        if (currentSearchRequest) {
+            currentSearchRequest.abort();
+            currentSearchRequest = null;
+        }
+
+        // Handle empty input
         if (!value.trim()) {
             resultsContainer.innerHTML = `
                 <div class="coffee-launcher-empty">
@@ -209,19 +226,76 @@
             return;
         }
 
-        // Example results - this would be replaced with actual search logic
-        var exampleResults = [
-            { title: 'Users', subtitle: 'Manage user accounts', icon: '👥' },
-            { title: 'Settings', subtitle: 'Application settings', icon: '⚙️' },
-            { title: 'Reports', subtitle: 'View reports and analytics', icon: '📊' },
-        ];
+        // Show loading state
+        resultsContainer.innerHTML = `
+            <div class="coffee-launcher-empty">
+                Searching...
+            </div>
+        `;
 
-        var filteredResults = exampleResults.filter(function(item) {
-            return item.title.toLowerCase().includes(value.toLowerCase()) ||
-                   item.subtitle.toLowerCase().includes(value.toLowerCase());
+        // Debounce search (300ms delay)
+        searchDebounceTimer = setTimeout(function() {
+            performSearch(value);
+        }, 300);
+    }
+
+    /**
+     * Perform search via API
+     * @param {string} query - The search query
+     */
+    function performSearch(query) {
+        var resultsContainer = launcherElement.querySelector('.coffee-launcher-results');
+
+        // Create AbortController for cancellable requests
+        var controller = new AbortController();
+        currentSearchRequest = controller;
+
+        // Build search URL
+        var searchUrl = '/admin/coffee/search/?q=' + encodeURIComponent(query);
+
+        // Perform fetch request
+        fetch(searchUrl, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            signal: controller.signal
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Search failed: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            currentSearchRequest = null;
+            displaySearchResults(data.results);
+        })
+        .catch(function(error) {
+            currentSearchRequest = null;
+
+            // Ignore aborted requests
+            if (error.name === 'AbortError') {
+                return;
+            }
+
+            console.error('Search error:', error);
+            resultsContainer.innerHTML = `
+                <div class="coffee-launcher-empty">
+                    Search failed. Please try again.
+                </div>
+            `;
         });
+    }
 
-        if (filteredResults.length === 0) {
+    /**
+     * Display search results in the launcher
+     * @param {Array} results - Array of result objects
+     */
+    function displaySearchResults(results) {
+        var resultsContainer = launcherElement.querySelector('.coffee-launcher-results');
+
+        if (!results || results.length === 0) {
             resultsContainer.innerHTML = `
                 <div class="coffee-launcher-empty">
                     No results found
@@ -230,9 +304,9 @@
             return;
         }
 
-        var html = filteredResults.map(function(item) {
+        var html = results.map(function(item) {
             return `
-                <div class="coffee-launcher-result-item" data-title="${item.title}">
+                <div class="coffee-launcher-result-item" data-url="${item.url}">
                     <span class="coffee-launcher-result-icon">${item.icon}</span>
                     <div class="coffee-launcher-result-text">
                         <div class="coffee-launcher-result-title">${item.title}</div>
@@ -248,19 +322,20 @@
         var items = resultsContainer.querySelectorAll('.coffee-launcher-result-item');
         items.forEach(function(item) {
             item.addEventListener('click', function() {
-                handleResultClick(item.dataset.title);
+                handleResultClick(item.dataset.url);
             });
         });
     }
 
     /**
      * Handle result item click
-     * @param {string} title - The title of the clicked item
+     * @param {string} url - The URL to navigate to
      */
-    function handleResultClick(title) {
-        console.log('Result clicked:', title);
-        // Add your custom logic here
-        // Example: Navigate to a page, open a modal, etc.
+    function handleResultClick(url) {
+        if (url) {
+            // Navigate to the selected URL
+            window.location.href = url;
+        }
         hideLauncher();
     }
 
