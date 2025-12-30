@@ -1,0 +1,6 @@
+include LICENSE
+include README.md
+include coffee_admin/README.md
+recursive-include coffee_admin/templates *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
