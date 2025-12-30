@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.contrib.admin import AdminSite
 
 
 class CoffeeAdminSite(admin.AdminSite):
@@ -12,6 +13,9 @@ class CoffeeAdminSite(admin.AdminSite):
     site_header = 'Coffee Administration'
     site_title = 'Coffee Admin'
     index_title = 'Welcome to Coffee Admin'
+
+    class Media:
+        js = ('coffee_admin/js/coffee_admin.js',)
 
 
 # Custom admin view example (no model required)

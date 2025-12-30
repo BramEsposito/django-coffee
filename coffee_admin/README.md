@@ -7,22 +7,31 @@ A Django package designed to be loaded only in the Admin interface, without any 
 - Admin-only interface
 - No database models required
 - Custom admin views and functionality
+- Automatic JavaScript loading on every admin page
 - Easy integration with existing Django projects
 
 ## Installation
 
 Add `'coffee_admin'` to your `INSTALLED_APPS` in your Django settings:
 
+**IMPORTANT:** For the JavaScript to load on every admin page, `coffee_admin` must be listed **before** `django.contrib.admin` in `INSTALLED_APPS`:
+
 ```python
 INSTALLED_APPS = [
+    'coffee_admin',  # Must be before django.contrib.admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'coffee_admin',  # Add this line
 ]
+```
+
+Run collectstatic to gather static files:
+
+```bash
+python manage.py collectstatic
 ```
 
 ## Usage
@@ -48,6 +57,18 @@ The package includes example custom admin views that don't require models:
 - `custom_admin_view`: A basic admin view example
 - `admin_dashboard`: A staff-only dashboard view
 
+### JavaScript Integration
+
+The package automatically loads a JavaScript file (`coffee_admin.js`) on every admin page. This file includes:
+
+- A stub implementation ready for customization
+- Console logging to verify it's loaded
+- A global `CoffeeAdmin` object for extending functionality
+
+The JavaScript file is located at: `static/coffee_admin/js/coffee_admin.js`
+
+You can customize this file to add your own admin UI enhancements, event handlers, or custom functionality that should run on every admin page.
+
 ### Extending the Package
 
 You can extend this package by:
@@ -66,7 +87,13 @@ coffee_admin/
 ├── apps.py            # App configuration
 ├── urls.py            # URL routing for custom admin views
 ├── views.py           # Custom admin views
+├── static/
+│   └── coffee_admin/
+│       └── js/
+│           └── coffee_admin.js  # Auto-loaded on every admin page
 ├── templates/
+│   ├── admin/
+│   │   └── base_site.html       # Template override for JS loading
 │   └── coffee_admin/
 │       └── dashboard.html
 └── README.md
