@@ -333,7 +333,7 @@
     function displaySearchResults(results) {
         var resultsContainer = launcherElement.querySelector('.coffee-launcher-results');
 
-        // Reset selection when displaying new results
+        // Reset selection when displaying new results (will be set to 0 if results exist)
         selectedResultIndex = -1;
 
         if (!results || results.length === 0) {
@@ -366,6 +366,12 @@
                 handleResultClick(item.dataset.url);
             });
         });
+
+        // Automatically select the first result
+        if (items.length > 0) {
+            selectedResultIndex = 0;
+            items[0].classList.add('selected');
+        }
     }
 
     /**
