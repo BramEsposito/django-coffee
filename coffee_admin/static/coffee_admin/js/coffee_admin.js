@@ -100,6 +100,10 @@
                         <span><kbd class="coffee-launcher-kbd">esc</kbd> to close</span>
                     </div>
                 </div>
+                <div class="coffee-launcher-loading">
+                    <div class="coffee-launcher-spinner"></div>
+                    <div class="coffee-launcher-loading-text">Loading...</div>
+                </div>
             </div>
         `;
 
@@ -226,6 +230,12 @@
 
         // Reset selection
         selectedResultIndex = -1;
+
+        // Hide loading state
+        var loadingOverlay = launcherElement.querySelector('.coffee-launcher-loading');
+        if (loadingOverlay) {
+            loadingOverlay.classList.remove('active');
+        }
 
         // Reset results
         var resultsContainer = launcherElement.querySelector('.coffee-launcher-results');
@@ -380,10 +390,22 @@
      */
     function handleResultClick(url) {
         if (url) {
+            // Show loading state
+            showLoadingState();
+
             // Navigate to the selected URL
             window.location.href = url;
         }
-        hideLauncher();
+    }
+
+    /**
+     * Show the loading state overlay
+     */
+    function showLoadingState() {
+        var loadingOverlay = launcherElement.querySelector('.coffee-launcher-loading');
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('active');
+        }
     }
 
     /**
