@@ -33,14 +33,34 @@ class SearchAdminUrlsView(StaffMemberRequiredMixin, View):
     """
     Search Django admin URLs and return matching results as JSON.
     Returns all registered admin pages with their titles and URLs.
+
+    Supports custom AdminSite implementations by setting the admin_site attribute.
+
+    Example with custom admin site:
+        from myapp.admin import my_admin_site
+
+        urlpatterns = [
+            path('search/', SearchAdminUrlsView.as_view(admin_site=my_admin_site)),
+        ]
     """
+    # Default to Django's default admin site, can be overridden
+    admin_site = admin.site
+
+    def get_admin_site(self):
+        """
+        Get the admin site to search. Can be overridden for custom logic.
+        """
+        return self.admin_site
 
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q', '').lower().strip()
         results = []
 
+        # Get the admin site (supports custom implementations)
+        admin_site = self.get_admin_site()
+
         # Get all registered models in admin
-        for model, model_admin in admin.site._registry.items():
+        for model, model_admin in admin_site._registry.items():
             try:
                 app_label = model._meta.app_label
                 model_name = model._meta.model_name
@@ -49,9 +69,12 @@ class SearchAdminUrlsView(StaffMemberRequiredMixin, View):
                 verbose_name = getattr(model._meta, 'verbose_name', model_name.replace('_', ' '))
                 verbose_name_plural = getattr(model._meta, 'verbose_name_plural', verbose_name + 's')
 
+                # Get the admin site's URL prefix
+                admin_url = getattr(admin_site, 'name', 'admin')
+
                 # Base URLs for this model
-                list_url = f'/admin/{app_label}/{model_name}/'
-                add_url = f'/admin/{app_label}/{model_name}/add/'
+                list_url = f'/{admin_url}/{app_label}/{model_name}/'
+                add_url = f'/{admin_url}/{app_label}/{model_name}/add/'
 
                 # Create result for the model list view
                 list_item = {
@@ -89,12 +112,13 @@ class SearchAdminUrlsView(StaffMemberRequiredMixin, View):
                 # Skip models that cause errors
                 continue
 
-        # Add admin home
+        # Add admin home (use the admin site's name for the URL)
+        admin_url = getattr(admin_site, 'name', 'admin')
         if not query or 'home' in query or 'admin' in query or 'index' in query:
             results.insert(0, {
                 'title': 'Admin Home',
                 'subtitle': 'Django administration index',
-                'url': '/admin/',
+                'url': f'/{admin_url}/',
                 'icon': '🏠',
                 'category': 'navigation',
                 'app_label': 'admin',

@@ -138,6 +138,36 @@ The JavaScript file is located at: `static/coffee_admin/js/coffee_admin.js`
 
 You can customize this file to add your own admin UI enhancements, event handlers, or custom functionality that should run on every admin page.
 
+### Custom Admin Sites
+
+Coffee Admin supports Django's custom `AdminSite` implementations. You can use the launcher with multiple admin sites in the same project.
+
+**Basic Example:**
+```python
+# myapp/admin.py
+from django.contrib.admin import AdminSite
+
+class MyAdminSite(AdminSite):
+    site_header = 'My Custom Admin'
+    name = 'myadmin'
+
+my_admin = MyAdminSite()
+```
+
+```python
+# urls.py
+from coffee_admin.views import SearchAdminUrlsView
+from myapp.admin import my_admin
+
+urlpatterns = [
+    path('myadmin/', my_admin.urls),
+    path('myadmin/coffee/search/',
+         SearchAdminUrlsView.as_view(admin_site=my_admin)),
+]
+```
+
+For detailed examples including multiple admin sites, dynamic selection, and advanced configurations, see [docs/CUSTOM_ADMIN_SITES.md](../../docs/CUSTOM_ADMIN_SITES.md).
+
 ### Extending the Package
 
 You can extend this package by:
@@ -146,6 +176,7 @@ You can extend this package by:
 2. Registering custom admin URLs in `urls.py`
 3. Creating custom templates in `templates/coffee_admin/`
 4. Adding business logic in the `ready()` method of `CoffeeAdminConfig`
+5. Using with custom `AdminSite` implementations (see above)
 
 ## File Structure
 
