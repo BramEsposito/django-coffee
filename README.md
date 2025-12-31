@@ -42,18 +42,22 @@ INSTALLED_APPS = [
 
 2. (Optional) Include coffee_admin URLs in your project's `urls.py`:
 
-**IMPORTANT:** The `coffee_admin` URL pattern must be registered **before** the main `admin/` URL pattern.
+**IMPORTANT:** The `coffee_admin` URL pattern must be registered **before** the main `admin/` URL pattern to ensure the `/admin/coffee/` path is properly matched.
 
+**Correct order:**
 ```python
 from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    # Coffee admin URLs must come BEFORE admin URLs
+    # Coffee admin URLs FIRST (more specific path)
     path('admin/coffee/', include('coffee_admin.urls')),
+    # Generic admin URLs AFTER (less specific path)
     path('admin/', admin.site.urls),
 ]
 ```
+
+**Why this order matters:** Django matches URLs from top to bottom. If `path('admin/', ...)` comes first, it will match `/admin/coffee/search/` and try to route it as a model URL, causing a 404 error. By placing the more specific `admin/coffee/` pattern first, it gets matched correctly.
 
 3. Run your Django development server and access the admin interface.
 
