@@ -30,47 +30,53 @@ def search_admin_urls(request):
 
     # Get all registered models in admin
     for model, model_admin in admin.site._registry.items():
-        app_label = model._meta.app_label
-        model_name = model._meta.model_name
-        verbose_name = model._meta.verbose_name
-        verbose_name_plural = model._meta.verbose_name_plural
+        try:
+            app_label = model._meta.app_label
+            model_name = model._meta.model_name
 
-        # Base URLs for this model
-        list_url = f'/admin/{app_label}/{model_name}/'
-        add_url = f'/admin/{app_label}/{model_name}/add/'
+            # Safely get verbose names with fallbacks
+            verbose_name = getattr(model._meta, 'verbose_name', model_name.replace('_', ' '))
+            verbose_name_plural = getattr(model._meta, 'verbose_name_plural', verbose_name + 's')
 
-        # Create result for the model list view
-        list_item = {
-            'title': verbose_name_plural.title(),
-            'subtitle': f'View all {verbose_name_plural}',
-            'url': list_url,
-            'icon': get_model_icon(app_label, model_name),
-            'category': 'models',
-            'app_label': app_label,
-        }
+            # Base URLs for this model
+            list_url = f'/admin/{app_label}/{model_name}/'
+            add_url = f'/admin/{app_label}/{model_name}/add/'
 
-        # Create result for add view
-        add_item = {
-            'title': f'Add {verbose_name.title()}',
-            'subtitle': f'Create a new {verbose_name}',
-            'url': add_url,
-            'icon': '➕',
-            'category': 'actions',
-            'app_label': app_label,
-        }
+            # Create result for the model list view
+            list_item = {
+                'title': verbose_name_plural.title(),
+                'subtitle': f'View all {verbose_name_plural}',
+                'url': list_url,
+                'icon': get_model_icon(app_label, model_name),
+                'category': 'models',
+                'app_label': app_label,
+            }
 
-        # Filter results based on query
-        if not query:
-            results.append(list_item)
-        else:
-            # Search in title, subtitle, and app label
-            list_searchable = f"{list_item['title']} {list_item['subtitle']} {app_label}".lower()
-            add_searchable = f"{add_item['title']} {add_item['subtitle']} {app_label}".lower()
+            # Create result for add view
+            add_item = {
+                'title': f'Add {verbose_name.title()}',
+                'subtitle': f'Create a new {verbose_name}',
+                'url': add_url,
+                'icon': '➕',
+                'category': 'actions',
+                'app_label': app_label,
+            }
 
-            if query in list_searchable:
+            # Filter results based on query
+            if not query:
                 results.append(list_item)
-            if query in add_searchable:
-                results.append(add_item)
+            else:
+                # Search in title, subtitle, and app label
+                list_searchable = f"{list_item['title']} {list_item['subtitle']} {app_label}".lower()
+                add_searchable = f"{add_item['title']} {add_item['subtitle']} {app_label}".lower()
+
+                if query in list_searchable:
+                    results.append(list_item)
+                if query in add_searchable:
+                    results.append(add_item)
+        except Exception as e:
+            # Skip models that cause errors
+            continue
 
     # Add admin home
     if not query or 'home' in query or 'admin' in query or 'index' in query:
