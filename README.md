@@ -42,13 +42,16 @@ INSTALLED_APPS = [
 
 2. (Optional) Include coffee_admin URLs in your project's `urls.py`:
 
+**IMPORTANT:** The `coffee_admin` URL pattern must be registered **before** the main `admin/` URL pattern.
+
 ```python
 from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Coffee admin URLs must come BEFORE admin URLs
     path('admin/coffee/', include('coffee_admin.urls')),
+    path('admin/', admin.site.urls),
 ]
 ```
 
