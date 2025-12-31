@@ -64,11 +64,11 @@ The package includes example custom admin views that don't require models:
 
 ### Launcher UI
 
-The package includes a Spotlight/Alfred-style command launcher that can be triggered with a keyboard shortcut (default: Alt+D):
+The package includes a Spotlight/Alfred-style command launcher that can be triggered with a keyboard shortcut (default: Ctrl+D):
 
 - **Search Admin Pages**: Type to search through all registered Django admin models and actions
 - **Keyboard Shortcuts**:
-  - `Alt+D` - Toggle launcher
+  - `Ctrl+D` - Toggle launcher
   - `ESC` - Close launcher
   - `↑`/`↓` - Navigate through results
   - `Enter` - Select highlighted result and navigate

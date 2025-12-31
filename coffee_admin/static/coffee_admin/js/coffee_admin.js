@@ -5,7 +5,7 @@
  * Add your custom admin JavaScript functionality here.
  *
  * Features:
- * - Configurable keystroke listener (default: Alt+D)
+ * - Configurable keystroke listener (default: Ctrl+D)
  * - Spotlight/Alfred-style launcher UI
  * - Real-time search of Django admin URLs
  * - Debounced API requests (300ms delay)
@@ -13,7 +13,7 @@
  * - Automatic navigation to selected results
  *
  * Keyboard Shortcuts:
- * - Alt+D: Toggle launcher
+ * - Ctrl+D: Toggle launcher
  * - ESC: Close launcher
  * - Arrow Up: Navigate to previous result
  * - Arrow Down: Navigate to next result
@@ -31,8 +31,8 @@
 
     // Keystroke configuration
     var keystrokeConfig = {
-        altKey: true,
-        ctrlKey: false,
+        altKey: false,
+        ctrlKey: true,
         shiftKey: false,
         key: 'd'  // The key to listen for (case-insensitive)
     };
