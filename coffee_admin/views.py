@@ -86,28 +86,37 @@ class SearchAdminUrlsView(StaffMemberRequiredMixin, View):
                     'app_label': app_label,
                 }
 
-                # Create result for add view
-                add_item = {
-                    'title': f'Add {verbose_name.title()}',
-                    'subtitle': f'Create a new {verbose_name}',
-                    'url': add_url,
-                    'icon': '➕',
-                    'category': 'actions',
-                    'app_label': app_label,
-                }
+                # Check if user has add permission for this model
+                has_add_permission = model_admin.has_add_permission(request)
+
+                # Create result for add view only if user has permission
+                add_item = None
+                if has_add_permission:
+                    add_item = {
+                        'title': f'Add {verbose_name.title()}',
+                        'subtitle': f'Create a new {verbose_name}',
+                        'url': add_url,
+                        'icon': '➕',
+                        'category': 'actions',
+                        'app_label': app_label,
+                    }
 
                 # Filter results based on query
                 if not query:
                     results.append(list_item)
+                    if add_item:
+                        results.append(add_item)
                 else:
                     # Search in title, subtitle, and app label
                     list_searchable = f"{list_item['title']} {list_item['subtitle']} {app_label}".lower()
-                    add_searchable = f"{add_item['title']} {add_item['subtitle']} {app_label}".lower()
 
                     if query in list_searchable:
                         results.append(list_item)
-                    if query in add_searchable:
-                        results.append(add_item)
+
+                    if add_item:
+                        add_searchable = f"{add_item['title']} {add_item['subtitle']} {app_label}".lower()
+                        if query in add_searchable:
+                            results.append(add_item)
             except Exception as e:
                 # Skip models that cause errors
                 continue
