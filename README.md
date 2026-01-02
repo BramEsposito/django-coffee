@@ -244,6 +244,129 @@ This package is useful when you need to:
 - Firefox 88+
 - Safari 14+
 
+## Development & Testing
+
+### Installing Development Dependencies
+
+To set up the development environment with testing tools:
+
+```bash
+pip install -e ".[dev]"
+```
+
+This installs:
+- pytest - Testing framework
+- pytest-django - Django integration for pytest
+- pytest-cov - Coverage reporting
+- black - Code formatting
+- isort - Import sorting
+
+### Running Tests
+
+Run all tests:
+
+```bash
+pytest
+```
+
+Run with coverage report:
+
+```bash
+pytest --cov=coffee_admin --cov-report=html
+```
+
+Run specific test file:
+
+```bash
+pytest tests/test_views.py
+```
+
+Run specific test:
+
+```bash
+pytest tests/test_views.py::TestSearchAdminUrlsView::test_view_accessible_to_staff_user
+```
+
+Run with verbose output:
+
+```bash
+pytest -v
+```
+
+Run tests with markers:
+
+```bash
+pytest -m unit          # Run only unit tests
+pytest -m permissions   # Run only permission tests
+pytest -m views         # Run only view tests
+```
+
+### Test Structure
+
+```
+tests/
+├── __init__.py
+├── conftest.py          # Pytest fixtures and configuration
+├── settings.py          # Test Django settings
+├── urls.py              # Test URL configuration
+├── test_app.py          # App configuration tests
+└── test_views.py        # View and API tests
+```
+
+### Coverage
+
+After running tests with coverage, open the HTML report:
+
+```bash
+# Generate coverage report
+pytest --cov=coffee_admin --cov-report=html
+
+# Open in browser (macOS)
+open htmlcov/index.html
+
+# Open in browser (Linux)
+xdg-open htmlcov/index.html
+```
+
+### Writing Tests
+
+The test suite includes:
+
+- **Unit Tests** - App configuration, static files, templates
+- **View Tests** - SearchAdminUrlsView, permission checks
+- **Integration Tests** - Search API, JSON responses
+- **Permission Tests** - Staff access, add permissions
+
+Example test:
+
+```python
+import pytest
+
+@pytest.mark.django_db
+def test_search_view_accessible_to_staff(client, staff_user):
+    """Staff users should be able to access search endpoint"""
+    client.force_login(staff_user)
+    response = client.get('/admin/coffee/search/')
+
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'application/json'
+```
+
+### Continuous Integration
+
+The test suite is designed to run in CI/CD pipelines:
+
+```bash
+# Install dependencies
+pip install -e ".[test]"
+
+# Run tests with coverage
+pytest --cov=coffee_admin --cov-report=xml --cov-report=term
+
+# Check coverage threshold (optional)
+coverage report --fail-under=80
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
