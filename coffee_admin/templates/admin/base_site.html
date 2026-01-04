@@ -4,5 +4,7 @@
 {% block extrahead %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'coffee_admin/css/launcher.css' %}">
+{% if user.is_authenticated %}
 <script src="{% static 'coffee_admin/js/coffee_admin.js' %}"></script>
+{% endif %}
 {% endblock %}
