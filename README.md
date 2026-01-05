@@ -1,5 +1,11 @@
 # Django Coffee Admin
 
+[![CI](https://github.com/BramEsposito/django-coffee/actions/workflows/ci.yml/badge.svg)](https://github.com/BramEsposito/django-coffee/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/BramEsposito/django-coffee/branch/main/graph/badge.svg)](https://codecov.io/gh/BramEsposito/django-coffee)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Django 3.2+](https://img.shields.io/badge/django-3.2+-green.svg)](https://www.djangoproject.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Django package that provides a Spotlight/Alfred-style command launcher for the Django admin interface, without requiring any database models.
 
 ## Features
@@ -354,7 +360,24 @@ def test_search_view_accessible_to_staff(client, staff_user):
 
 ### Continuous Integration
 
-The test suite is designed to run in CI/CD pipelines:
+This project uses GitHub Actions for automated testing. The CI workflow:
+
+- **Runs on:** Pull requests to `main` and pushes to `main`
+- **Test Matrix:** Python 3.8-3.12 × Django 3.2-5.0
+- **Coverage Requirement:** Minimum 80% code coverage (build fails below threshold)
+- **Code Quality:** Automated black and isort checks
+
+**Workflow file:** `.github/workflows/ci.yml`
+
+The CI pipeline automatically:
+1. Runs full test suite across all Python/Django combinations
+2. Generates coverage reports
+3. Fails if coverage drops below 80%
+4. Checks code formatting with black
+5. Checks import sorting with isort
+6. Uploads coverage to Codecov (optional)
+
+**Local CI simulation:**
 
 ```bash
 # Install dependencies
@@ -363,8 +386,12 @@ pip install -e ".[test]"
 # Run tests with coverage
 pytest --cov=coffee_admin --cov-report=xml --cov-report=term
 
-# Check coverage threshold (optional)
+# Check coverage threshold (fails if < 80%)
 coverage report --fail-under=80
+
+# Check code formatting
+black --check coffee_admin/ tests/
+isort --check-only coffee_admin/ tests/
 ```
 
 ## Contributing

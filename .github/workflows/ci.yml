@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        django-version: ['3.2', '4.0', '4.1', '4.2', '5.0']
+        exclude:
+          # Django 5.0 requires Python 3.10+
+          - python-version: '3.8'
+            django-version: '5.0'
+          - python-version: '3.9'
+            django-version: '5.0'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install Django==${{ matrix.django-version }}
+        pip install -e ".[test]"
+
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=coffee_admin --cov-report=term --cov-report=xml --cov-report=html --cov-branch
+
+    - name: Check coverage threshold
+      run: |
+        coverage report --fail-under=80
+
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.12' && matrix.django-version == '5.0'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Upload coverage HTML report
+      if: matrix.python-version == '3.12' && matrix.django-version == '5.0'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: htmlcov/
+
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Check code formatting with black
+      run: |
+        black --check coffee_admin/ tests/
+
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only coffee_admin/ tests/
