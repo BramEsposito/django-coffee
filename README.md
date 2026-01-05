@@ -1,5 +1,11 @@
 # Django Coffee Admin
 
+[![CI](https://github.com/BramEsposito/django-coffee/actions/workflows/ci.yml/badge.svg)](https://github.com/BramEsposito/django-coffee/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/BramEsposito/django-coffee/branch/main/graph/badge.svg)](https://codecov.io/gh/BramEsposito/django-coffee)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Django 3.2+](https://img.shields.io/badge/django-3.2+-green.svg)](https://www.djangoproject.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Django package that provides a Spotlight/Alfred-style command launcher for the Django admin interface, without requiring any database models.
 
 ## Features
@@ -243,6 +249,150 @@ This package is useful when you need to:
 - Chrome/Edge 90+
 - Firefox 88+
 - Safari 14+
+
+## Development & Testing
+
+### Installing Development Dependencies
+
+To set up the development environment with testing tools:
+
+```bash
+pip install -e ".[dev]"
+```
+
+This installs:
+- pytest - Testing framework
+- pytest-django - Django integration for pytest
+- pytest-cov - Coverage reporting
+- black - Code formatting
+- isort - Import sorting
+
+### Running Tests
+
+Run all tests:
+
+```bash
+pytest
+```
+
+Run with coverage report:
+
+```bash
+pytest --cov=coffee_admin --cov-report=html
+```
+
+Run specific test file:
+
+```bash
+pytest tests/test_views.py
+```
+
+Run specific test:
+
+```bash
+pytest tests/test_views.py::TestSearchAdminUrlsView::test_view_accessible_to_staff_user
+```
+
+Run with verbose output:
+
+```bash
+pytest -v
+```
+
+Run tests with markers:
+
+```bash
+pytest -m unit          # Run only unit tests
+pytest -m permissions   # Run only permission tests
+pytest -m views         # Run only view tests
+```
+
+### Test Structure
+
+```
+tests/
+├── __init__.py
+├── conftest.py          # Pytest fixtures and configuration
+├── settings.py          # Test Django settings
+├── urls.py              # Test URL configuration
+├── test_app.py          # App configuration tests
+└── test_views.py        # View and API tests
+```
+
+### Coverage
+
+After running tests with coverage, open the HTML report:
+
+```bash
+# Generate coverage report
+pytest --cov=coffee_admin --cov-report=html
+
+# Open in browser (macOS)
+open htmlcov/index.html
+
+# Open in browser (Linux)
+xdg-open htmlcov/index.html
+```
+
+### Writing Tests
+
+The test suite includes:
+
+- **Unit Tests** - App configuration, static files, templates
+- **View Tests** - SearchAdminUrlsView, permission checks
+- **Integration Tests** - Search API, JSON responses
+- **Permission Tests** - Staff access, add permissions
+
+Example test:
+
+```python
+import pytest
+
+@pytest.mark.django_db
+def test_search_view_accessible_to_staff(client, staff_user):
+    """Staff users should be able to access search endpoint"""
+    client.force_login(staff_user)
+    response = client.get('/admin/coffee/search/')
+
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'application/json'
+```
+
+### Continuous Integration
+
+This project uses GitHub Actions for automated testing. The CI workflow:
+
+- **Runs on:** Pull requests to `main` and pushes to `main`
+- **Test Matrix:** Python 3.8-3.12 × Django 3.2-5.0
+- **Coverage Requirement:** Minimum 80% code coverage (build fails below threshold)
+- **Code Quality:** Automated black and isort checks
+
+**Workflow file:** `.github/workflows/ci.yml`
+
+The CI pipeline automatically:
+1. Runs full test suite across all Python/Django combinations
+2. Generates coverage reports
+3. Fails if coverage drops below 80%
+4. Checks code formatting with black
+5. Checks import sorting with isort
+6. Uploads coverage to Codecov (optional)
+
+**Local CI simulation:**
+
+```bash
+# Install dependencies
+pip install -e ".[test]"
+
+# Run tests with coverage
+pytest --cov=coffee_admin --cov-report=xml --cov-report=term
+
+# Check coverage threshold (fails if < 80%)
+coverage report --fail-under=80
+
+# Check code formatting
+black --check coffee_admin/ tests/
+isort --check-only coffee_admin/ tests/
+```
 
 ## Contributing
 
